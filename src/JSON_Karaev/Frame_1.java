@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import javax.swing.JOptionPane;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -108,69 +107,46 @@ public class Frame_1 extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String profile= jTextField1.getText(); //Поля для ввода логина на Git
-        String followers = "https://api.github.com/users/"+profile+"/followers"; // Адрес получения JSON - данных
-        String json_followers = getHTMLData(followers);
-        String following = "https://api.github.com/users/"+profile+"/following"; // Адрес получения JSON - данных
-        String json_following = getHTMLData(followers);
-        String repos = "https://api.github.com/users/"+profile+"/repos"; // Адрес получения JSON - данных
-        String json_repos = getHTMLData(repos);
-        StringBuilder subscribe = new StringBuilder("Подписчики пользователя "+profile+":\n \n");
-        if (json_followers != null) {
-            JSONArray _root = null;
-            try {
-                  _root = new JSONArray(json_followers);
-                  for(int i = 0;i<_root.length();i++ ){
-                      JSONObject user = _root.getJSONObject(i);
-                      String login = user.getString("login");
-                      String html_url = user.getString("html_url");
-                      subscribe.append(i+1 +") Логин: "+login+"\n");
-                      subscribe.append("Ссылка на профиль: "+html_url+"\n \n");
-                  }
-                jTextArea1.setText(subscribe.toString());
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(rootPane, "Ошибка код: 1!", "Ошибка!", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-        StringBuilder follow = new StringBuilder("Подписки пользователя "+profile+":\n \n");
-        if (json_following != null) {
-            JSONArray _root = null;
-            try {
-                  _root = new JSONArray(json_following);
-                  for(int i = 0;i<_root.length();i++ ){
-                      JSONObject user = _root.getJSONObject(i);
-                      String login = user.getString("login");
-                      String html_url = user.getString("html_url");
-                      follow.append(i+1 +") Логин: "+login+"\n");
-                      follow.append("Ссылка на профиль: "+html_url+"\n \n");
-                  }
-                jTextArea2.setText(follow.toString());
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(rootPane, "Ошибка код: 2!", "Ошибка!", JOptionPane.ERROR_MESSAGE);
-            }
-        } 
-        StringBuilder repository = new StringBuilder("Репрозитории пользователя "+profile+":\n \n");
-        if (json_repos != null) {
-            JSONArray _root = null;
-            try {
-                  _root = new JSONArray(json_repos);
-                  for(int i = 0;i<_root.length();i++ ){
-                      JSONObject user = _root.getJSONObject(i);
-                      String name = user.getString("name");
-                      String html_url = user.getString("html_url");
-                      String created_at = user.getString("created_at");
-                      String updated_at = user.getString("updated_at");
-                      repository.append(i+1 +") Имя репрозитория: "+name+"\n");
-                      repository.append("Ссылка на репрозиторий: "+html_url+"\n");
-                      repository.append("Дата создания: "+created_at+"\n");
-                      repository.append("Последнее обновление: "+updated_at+"\n \n");
-                  }
-                jTextArea3.setText(repository.toString());
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(rootPane, "Ошибка код: 3!", "Ошибка!", JOptionPane.ERROR_MESSAGE);
-            }
-        }
+        String profile = jTextField1.getText(); //Поля для ввода логина на Git
+        final String USER_PROFILE = "https://api.github.com/users/" + profile;
+        String json_followers = getHTMLData(USER_PROFILE + "/followers");
+        String json_following = getHTMLData(USER_PROFILE + "/following");
+        String json_repos = getHTMLData(USER_PROFILE + "/repos");
+        jTextArea1.setText(getJSON(json_followers, new StringBuilder("Подписчики пользователя " + profile + ":\n \n"), false));
+        jTextArea2.setText(getJSON(json_following, new StringBuilder("Подписки пользователя " + profile + ":\n \n"), false));
+        jTextArea3.setText(getJSON(json_repos, new StringBuilder("Репрозитории пользователя " + profile + ":\n \n"), true));
     }//GEN-LAST:event_jButton1ActionPerformed
+    public String getJSON(String url, StringBuilder data, Boolean exDate) {
+    final String NO_DATA = "Нет данных!";
+        if (url != null) {
+            JSONArray _root = null;
+            try {
+                _root = new JSONArray(url);
+                for (int i = 0; i < _root.length(); i++) {
+                    JSONObject user = _root.getJSONObject(i);
+                    if (!exDate) {
+                        String login = user.getString("login");
+                        String html_url = user.getString("html_url");
+                        data.append(i + 1 + ") Логин: " + login + "\n");
+                        data.append("Ссылка на профиль: " + html_url + "\n \n");
+                    } else {
+                        String name = user.getString("name");
+                        String html_url = user.getString("html_url");
+                        String created_at = user.getString("created_at");
+                        String updated_at = user.getString("updated_at");
+                        data.append(i + 1 + ") Имя репрозитория: " + name + "\n");
+                        data.append("Ссылка на репрозиторий: " + html_url + "\n");
+                        data.append("Дата создания: " + created_at + "\n");
+                        data.append("Последнее обновление: " + updated_at + "\n \n");
+                    }
+                }
+                return data.toString();
+            } catch (Exception e) {
+                return NO_DATA;
+            }
+        }
+        return NO_DATA;
+    }
     // Метод чтения данных с сети по протоколу HTTP
     public static String getHTMLData(String url) {
         HttpURLConnection connection = null;
